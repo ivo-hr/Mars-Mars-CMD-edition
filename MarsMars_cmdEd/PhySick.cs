@@ -8,26 +8,29 @@ namespace PhySick_engine
         private double univGravConst = 6.67 * Math.Pow(10, -11);
 
         //Planet specs: gravity and resistance
-        private float grav  = 10;
-        private float res = 0;
+        private float grav = 10, res = 1, tick = 0;
+
 
         //Simulated object: mass, downward  applied  force,  horizontal speed, latitude and longitude
         struct MassObj
         {
-            public float objMass,
-                        objForce,
-                        objSpeed,
+            public float mass,
+                        latF,
+                        lonF,
                         lat,
                         lon;
+
         }
         MassObj obj = new MassObj();
 
         //Constructor
-        public PhySick(float gravity, float airResist, float mass)
+        public PhySick(float gravity, float airResist, float mass, float refresh)
         {
             grav = gravity;
             res = airResist;
-            obj.objMass = mass;
+            obj.mass = mass;
+            tick = refresh;
+
         }
 
         //Object position (lat and lon) get/set
@@ -53,21 +56,33 @@ namespace PhySick_engine
 
         private void MainPhysics()
         {
+            float sSq = (float)Math.Pow(tick / 1000, 2);
 
+            obj.latF = ForceTranslator(obj.latF, grav);
+
+            if (obj.lonF < 0)
+                obj.lonF += res / sSq;
+            else if (obj.lonF < 0)
+                obj.lonF -= res / sSq;
+
+
+            obj.lat = obj.latF * (tick / 1000);
+            obj.lon = obj.lonF * (tick / 1000);
         }
 
 
-        public void ApplyForce(float x, float y)
+        public void ApplyForce(float x, float y, bool applyGrav)
         {
-            float newY = y;
-            obj.objForce = ForceTranslator(obj.objForce, ref newY);
+            float newY = y, newX = x - grav;
+            obj.latF = ForceTranslator(obj.latF, newY);
+            obj.lonF = ForceTranslator(obj.lonF, newX);
         }
 
-        private float ForceTranslator(float startingF,  ref float forceChange)
+        private float ForceTranslator(float startingF,  float forceChange)
         {
             float translated = 0;
 
-            translated = startingF - (float)Math.Pow(forceChange, 2);
+            translated = startingF - ((float)Math.Pow(forceChange, 2) / (float)Math.Pow(tick / 1000, 2));
 
             return translated;
         }
