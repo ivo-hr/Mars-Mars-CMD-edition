@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Threading;
 namespace PhySick_engine
 {
     public class PhySick 
@@ -8,7 +8,8 @@ namespace PhySick_engine
         private double univGravConst = 6.67 * Math.Pow(10, -11);
 
         //Planet specs: gravity and resistance
-        private float grav = 10, res = 1, tick = 0;
+        private float grav = 10, res = 1, tick = 0, timSinceJump = 0, dangerDropSp = 10;
+
 
 
         //Simulated object: mass, downward  applied  force,  horizontal speed, latitude and longitude
@@ -24,7 +25,7 @@ namespace PhySick_engine
         MassObj obj = new MassObj();
 
         //Constructor
-        public PhySick(float gravity, float airResist, float mass, float refresh)
+        public PhySick(float gravity, float airResist, float mass, float speedLim, float refresh)
         {
             grav = gravity;
             res = airResist;
@@ -56,38 +57,48 @@ namespace PhySick_engine
 
         private void MainPhysics()
         {
-            float sSq = (float)Math.Pow(tick / 1000, 2);
+            float sSq = (float)Math.Pow(timSinceJump / 1000, 2);
 
             obj.latF = ForceTranslator(obj.latF, grav);
 
             if (obj.lonF < 0)
                 obj.lonF += res / sSq;
-            else if (obj.lonF < 0)
+            else if (obj.lonF > 0)
                 obj.lonF -= res / sSq;
 
 
-            obj.lat = obj.latF * (tick / 1000);
-            obj.lon = obj.lonF * (tick / 1000);
+            obj.lat = obj.latF * (timSinceJump / 1000);
+            obj.lon = obj.lonF * (timSinceJump / 1000);
         }
 
-
-        public void ApplyForce(float x, float y, bool applyGrav)
+        //x = horizontal force applied, y = vertical force applied
+        public void ApplyForce(float x, float y)
         {
-            float newY = y, newX = x - grav;
-            obj.latF = ForceTranslator(obj.latF, newY);
-            obj.lonF = ForceTranslator(obj.lonF, newX);
+            obj.latF = ForceTranslator(obj.latF, y);
+
+            obj.lonF = ForceTranslator(obj.lonF, x);
         }
 
         private float ForceTranslator(float startingF,  float forceChange)
         {
             float translated = 0;
 
-            translated = startingF - ((float)Math.Pow(forceChange, 2) / (float)Math.Pow(tick / 1000, 2));
+            translated = startingF - ((float)Math.Pow(forceChange, 2) / (float)Math.Pow(timSinceJump / 1000, 2));
 
             return translated;
         }
 
         
+        public void TimeSinceFloor(bool count)
+        {
+            if (count) timSinceJump += tick;
+            else timSinceJump = 0;
+        }
 
+        public bool FastEntry()
+        {
+
+            return obj.latF > dangerDropSp;
+        }
     }
 }
