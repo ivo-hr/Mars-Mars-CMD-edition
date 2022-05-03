@@ -1,7 +1,8 @@
 ﻿using System;
 using PhySick_engine;
 using Listas;
-namespace MarsCMD
+using RandWrld_generator;
+namespace MainPr
 {
     internal class Program
     {
@@ -10,7 +11,34 @@ namespace MarsCMD
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            //WORLD DATA
+            int WIDTH = 30, 
+                RENDERSIZE = 5, 
+                MAXHEIGHT = 25, 
+                HEIGHT = 30,
+                SEED = 1, 
+                ROUGHNESS = 2, 
+                FEATURES = 3;
+
+            //PHYSICS DATA
+            float GRAVITY = 5,
+                  RESISTANCE = 1,
+                  MASS = 2,
+                  MAXSPEED = 10,
+                  REFRESH = 300;
+
+
+
+
+            Console.WindowWidth = WIDTH * RENDERSIZE;
+
+            RandWrld mars = new RandWrld(WIDTH, MAXHEIGHT, SEED);
+
+            mars.StartWorld(FEATURES, ROUGHNESS);
+
+            mars.RenderWorld(HEIGHT, RENDERSIZE);
+
+            PhySick phys = new PhySick(GRAVITY, RESISTANCE, MASS, MAXSPEED, REFRESH);
         }
         
         static char LeeInput()

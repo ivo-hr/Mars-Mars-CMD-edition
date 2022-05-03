@@ -50,5 +50,36 @@ namespace RandWrld_generator
             // asignamos ultimas posiciones en el array
             wrld[ancho - 1] = s;
         }
+
+        public void StartWorld(int feat, int roug )
+        {
+            //Se esconde el cursor para rederizado limpio
+            Console.CursorVisible = false;
+            //Primeros valores del techo y suelo
+
+            wrld[ancho - 1] = maxAlt - 1;
+            //Generación del túnel en la primera pantalla
+            for (int i = 0; i < ancho - 1; i++) WorldGen(feat, roug);
+        }
+
+        public void RenderWorld(int floor, int renderSize)
+        {
+            //Cada columna
+            for (int i = 0; i < ancho; i++)
+            {
+                //La fila de cada columna
+                for (int j = 0; j < floor; j++)
+                {
+                    //Colocación del cursor
+                    Console.SetCursorPosition(renderSize * i, j);
+                    //Si es un muro
+                    if (j >= wrld[i]) Console.BackgroundColor = ConsoleColor.DarkYellow;
+                    //Si no es nada
+                    else Console.BackgroundColor = ConsoleColor.Black;
+                    //Escritura dela posición
+                    for(int k = 0; k < renderSize; k++) Console.Write(" ");
+                }
+            }
+        }
     }
 }
