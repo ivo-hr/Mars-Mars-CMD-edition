@@ -30,6 +30,7 @@ namespace PhySick_engine
             grav = gravity;
             res = airResist;
             obj.mass = mass;
+            dangerDropSp = speedLim;
             tick = refresh;
 
         }
@@ -97,7 +98,6 @@ namespace PhySick_engine
 
         public bool FastEntry()
         {
-
             return obj.latF > dangerDropSp;
         }
     }
