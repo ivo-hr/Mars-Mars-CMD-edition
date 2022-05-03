@@ -52,7 +52,7 @@ namespace PhySick_engine
 
         public void DoPhys(bool applyGrav)
         {
-
+            
         }
 
         private void MainPhysics()

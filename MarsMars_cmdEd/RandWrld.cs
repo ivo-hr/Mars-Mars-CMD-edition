@@ -39,8 +39,8 @@ namespace RandWrld_generator
             s = wrld[ancho - 1];
 
             // generamos nuevos valores para esas ultimas posiciones
-            int opt = rnd.Next(features);
-            int var = rnd.Next(1, roughness);
+            int opt = rnd.Next(features); //si varia
+            int var = rnd.Next(1, roughness); //Cuánto varia
             if (opt == 0 && s < maxAlt)
                 s +=var;
             else if (opt == 1 && s > 3)
