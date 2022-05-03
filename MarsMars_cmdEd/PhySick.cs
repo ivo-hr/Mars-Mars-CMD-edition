@@ -56,7 +56,7 @@ namespace PhySick_engine
             
         }
 
-        private void MainPhysics()
+        public void MainPhysics()
         {
             float sSq = (float)Math.Pow(timSinceJump / 1000, 2);
 
@@ -68,8 +68,8 @@ namespace PhySick_engine
                 obj.lonF -= res / sSq;
 
 
-            obj.lat = obj.latF * (timSinceJump / 1000);
-            obj.lon = obj.lonF * (timSinceJump / 1000);
+            obj.lat += obj.latF * (timSinceJump / 1000);
+            obj.lon += obj.lonF * (timSinceJump / 1000);
         }
 
         //x = horizontal force applied, y = vertical force applied
@@ -82,11 +82,12 @@ namespace PhySick_engine
 
         private float ForceTranslator(float startingF,  float forceChange)
         {
-            float translated = 0;
+            float translated = startingF;
+            float toOp = (float)Math.Pow(timSinceJump / 1000, 2);
+            if (toOp > 0)
+            translated = startingF - ((float)forceChange / toOp);
 
-            translated = startingF - ((float)Math.Pow(forceChange, 2) / (float)Math.Pow(timSinceJump / 1000, 2));
-
-            return translated;
+            return translated/10;
         }
 
         
