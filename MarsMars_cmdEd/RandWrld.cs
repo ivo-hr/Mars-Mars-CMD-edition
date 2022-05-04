@@ -73,11 +73,15 @@ namespace RandWrld_generator
                     //Colocación del cursor
                     Console.SetCursorPosition(renderSize * i, j);
                     //Si es un muro
-                    if (j >= wrld[i]) Console.BackgroundColor = ConsoleColor.DarkYellow;
+
+                    if (j >= wrld[i])
+                    {
+                        Console.BackgroundColor = ConsoleColor.DarkYellow;
+                    }
                     //Si no es nada
                     else Console.BackgroundColor = ConsoleColor.Black;
                     //Escritura dela posición
-                    for(int k = 0; k < renderSize; k++) Console.Write(" ");
+                    for (int k = 0; k < renderSize; k++) Console.Write(" ");
                 }
             }
         }

@@ -10,14 +10,14 @@ namespace MainPr
     {
 
         static bool inAir = false;
-        static bool DEBUG = true;
+        static bool DEBUG = false;
         static bool DED = false;
 
         //WORLD DATA
         static int WIDTH = 30,
-            RENDERSIZE = 6,
-            MAXHEIGHT = 40,
-            HEIGHT = 50,
+            RENDERSIZE = 4,
+            MAXHEIGHT = 27,
+            HEIGHT = 30,
             SEED = 1,
             ROUGHNESS = 2,
             FEATURES = 3;
@@ -39,11 +39,7 @@ namespace MainPr
         static void Main(string[] args)
         {
             
-
-
-            Console.WindowWidth = WIDTH * RENDERSIZE;
-            Console.WindowHeight = HEIGHT;
-
+            Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("Hello!");
             Console.WriteLine("Enter your username: ");
 
@@ -51,7 +47,7 @@ namespace MainPr
 
             StartGame(ref USER, ref SEED, ref ROUGHNESS, ref FEATURES, ref POINTS);
 
-
+            Console.Clear();
 
             RandWrld mars = new RandWrld(WIDTH, MAXHEIGHT, SEED);
 
@@ -74,7 +70,7 @@ namespace MainPr
             bool danger = player.FastEntry();
             while (play)
             {
-                if (!DED) PlayGame(ref play, ref player, ref mars);
+                if (!DED) PlayGame(ref play, ref player, ref mars, ref ch);
                 else
                 {
                     SaveData(USER, SEED, ROUGHNESS, FEATURES, POINTS);
@@ -110,7 +106,7 @@ namespace MainPr
                 {
                     int x = (int)pos[1] * renderSz + i;
                     int y = (int)pos[0] - renderSz + j;
-                    
+
                     if (y > 0)
                     {
                         Console.SetCursorPosition(x, y);
@@ -124,18 +120,16 @@ namespace MainPr
                         if (i < renderSz/2) Console.Write("(");
                         else if (i == renderSz/2) Console.Write("|");
                         else Console.Write(")");
-
-
                     }
 
-                    if (x < 0) DED = true;
+                    if (x < 0 || x > Console.WindowWidth) DED = true;
                 }
             }
 
 
         }
 
-        static void Collisions(ref PhySick pl, int renderSz, int[] wrld, ref int fuel, ref int pt)
+        static void Collisions(ref PhySick pl, int[] wrld, ref int fuel, ref int pt)
         {
                 int y = (int)pl.objPos[0];
                 int x = (int)pl.objPos[1];
@@ -165,19 +159,19 @@ namespace MainPr
             {
                 case 'l':
                     pl.ApplyForce(5f, -3f * 10);
-                    fuel-=2;
+                    fuel-=4;
                     inAir = true;
                     break;
                 case 'r':
                     pl.ApplyForce(-5f, -3f * 10);
                     inAir = true;
-                    fuel-=2;
+                    fuel-=4;
                     break;
                 case 'u':
                 case 'x':
-                    pl.ApplyForce(0f, -4f * 10);
+                    pl.ApplyForce(0f, -6f * 10);
                     inAir = true;
-                    fuel-=4;
+                    fuel-=8;
                     break;
                 default: pl.ApplyForce(0, 0);
                     break;
@@ -234,6 +228,11 @@ namespace MainPr
 
                 reader.Close();
             }
+            else
+            {
+                StreamWriter writer = new StreamWriter("saveDat", false);        //creación del archivo de usuario
+                writer.Close();
+            }
             if (!found)
             {
                 SaveData(user, seed, roug, feat, pt);
@@ -275,8 +274,9 @@ namespace MainPr
            
         }
 
-        static void PlayGame(ref bool play, ref PhySick player, ref RandWrld mars)
+        static void PlayGame(ref bool play, ref PhySick player, ref RandWrld mars, ref char oldIn)
         {
+            //Console.Clear();
             if (DEBUG)
             {
                 Console.SetCursorPosition(1, 1);
@@ -284,19 +284,37 @@ namespace MainPr
                 Console.WriteLine("Pos: " + player.objPos[1] + "x  " + player.objPos[0] + "y");
             }
             player.TimeSinceFloor(inAir);
-
+            bool oldAir = inAir;
             char ch = LeeInput();
+            if (ch != oldIn)
+            {
+                ManageInput(ref player, ch, ref FUEL);
+                if (ch == 'q') play = false;
 
-            ManageInput(ref player, ch, ref FUEL);
-            if (ch == 'q') play = false;
-            if (ch == 'l') mars.WorldGen(FEATURES, ROUGHNESS);
+            }
 
             player.MainPhysics();
             bool danger = player.FastEntry();
-            Collisions(ref player, RENDERSIZE, mars.GetWorld(), ref FUEL, ref POINTS);
 
-            RenderPlayer(player.objPos, RENDERSIZE, FUEL, danger);
+            Collisions(ref player, mars.GetWorld(), ref FUEL, ref POINTS);
+
             mars.RenderWorld(HEIGHT, RENDERSIZE);
+            RenderPlayer(player.objPos, RENDERSIZE, FUEL, danger);
+
+            if (!inAir && oldAir && !DED)
+            {
+                for (int i = 0; i < POINTS; i++) mars.WorldGen(FEATURES, ROUGHNESS);
+                startingPoint = new float[2] { mars.GetWorld()[POINTS], WIDTH / 4 };
+
+                player.objPos = startingPoint;
+
+                oldAir = inAir;
+
+                mars.RenderWorld(HEIGHT, RENDERSIZE);
+                RenderPlayer(player.objPos, RENDERSIZE, FUEL, danger);
+
+            }
+
 
             Thread.Sleep((int)REFRESH);
         }
