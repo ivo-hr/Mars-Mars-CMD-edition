@@ -8,7 +8,7 @@ namespace PhySick_engine
         private double univGravConst = 6.67 * Math.Pow(10, -11);
 
         //Planet specs: gravity and resistance
-        private float grav = 10, res = 1, tick = 0, timSinceJump = 0, dangerDropSp = 10;
+        private float grav = 10, currGrav = 10, res = 1, tick = 0, timSinceJump = 0, dangerDropSp = 10, maxf = 13;
 
 
 
@@ -25,12 +25,13 @@ namespace PhySick_engine
         MassObj obj = new MassObj();
 
         //Constructor
-        public PhySick(float gravity, float airResist, float mass, float speedLim, float refresh)
+        public PhySick(float gravity, float airResist, float mass, float deathLim, float spLim, float refresh)
         {
             grav = gravity;
             res = airResist;
             obj.mass = mass;
-            dangerDropSp = speedLim;
+            dangerDropSp = deathLim;
+            maxf = spLim;
             tick = refresh;
 
         }
@@ -49,6 +50,15 @@ namespace PhySick_engine
             }
         }
 
+        public float GetForce(int lat0lon1)
+        {
+            if (lat0lon1 > 0)
+            {
+                return obj.lonF;
+            }
+            else return obj.latF;
+        }
+
        
 
         public void DoPhys(bool applyGrav)
@@ -58,34 +68,52 @@ namespace PhySick_engine
 
         public void MainPhysics()
         {
-            float sSq = (float)Math.Pow(timSinceJump / 1000, 2);
+            
+            if (timSinceJump > 0)    obj.latF += grav * timSinceJump;
 
-            obj.latF = ForceTranslator(obj.latF, grav);
+            //if (obj.latF == 0) obj.latF = ForceTranslator(obj.lonF, -grav);
+            //else if (-0.5 < obj.latF && obj.latF < 0) obj.latF = 0f;
+            //else if  (0.5 > obj.latF && obj.latF > 0) obj.latF = -0f;
 
             if (obj.lonF < 0)
-                obj.lonF += res / sSq;
+                obj.lonF += res * timSinceJump ;
             else if (obj.lonF > 0)
-                obj.lonF -= res / sSq;
+                obj.lonF -= res * timSinceJump ;
 
 
-            obj.lat += obj.latF * (timSinceJump / 1000);
-            obj.lon += obj.lonF * (timSinceJump / 1000);
+            if (timSinceJump > 0)
+            {
+                obj.lat += obj.latF * timSinceJump;
+                obj.lon += obj.lonF * timSinceJump;
+            }
+
+            
+
+           
         }
 
         //x = horizontal force applied, y = vertical force applied
         public void ApplyForce(float x, float y)
         {
-            obj.latF = ForceTranslator(obj.latF, y);
+            obj.latF += y * timSinceJump;
+            
+            obj.lonF += x * timSinceJump;
 
-            obj.lonF = ForceTranslator(obj.lonF, x);
+
+            if (obj.latF < -maxf) obj.latF = -maxf;
+        }
+
+        public void CancelForces()
+        {
+            obj.latF = 0;
+            obj.lonF = 0;
         }
 
         private float ForceTranslator(float startingF,  float forceChange)
         {
-            float translated = startingF;
-            float toOp = (float)Math.Pow(timSinceJump / 1000, 2);
-            if (toOp > 0)
-            translated = startingF - ((float)forceChange / toOp);
+            float translated = startingF;;
+            if (timSinceJump > 0)
+            translated = startingF - ((float)forceChange / timSinceJump);
 
             return translated/10;
         }
@@ -93,8 +121,12 @@ namespace PhySick_engine
         
         public void TimeSinceFloor(bool count)
         {
-            if (count) timSinceJump += tick;
-            else timSinceJump = 0;
+            if (count) timSinceJump = (timSinceJump + tick) / 1000;
+            else
+            {
+                timSinceJump = 0;
+                currGrav = 0;
+            }
         }
 
         public bool FastEntry()
